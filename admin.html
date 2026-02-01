@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Unknown Dubbers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-container p {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .admin-panel {
+            display: none;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .admin-panel h2 {
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <h1>🔐 Admin Login</h1>
+        <p>Unknown Dubbers Admin Panel</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <button type="submit">Login</button>
+        </form>
+        
+        <div class="error" id="error">Invalid username or password!</div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        
+        <h2>Add New Anime</h2>
+        <div class="form-section">
+            <form id="animeForm">
+                <div class="form-group">
+                    <label>Anime Name</label>
+                    <input type="text" id="animeName" required>
+                </div>
+                <div class="form-group">
+                    <label>Poster URL</label>
+                    <input type="url" id="animePoster" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="animeDesc">
+                </div>
+                <button type="submit">Add Anime</button>
+            </form>
+        </div>
+
+        <h2>Add Episode</h2>
+        <div class="form-section">
+            <form id="episodeForm">
+                <div class="form-group">
+                    <label>Select Anime</label>
+                    <select id="selectAnime" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;" required>
+                        <option value="">-- Select --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Episode Number</label>
+                    <input type="number" id="episodeNum" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail URL</label>
+                    <input type="url" id="episodeThumb" required>
+                </div>
+                <div class="form-group">
+                    <label>480p Link</label>
+                    <input type="url" id="link480">
+                </div>
+                <div class="form-group">
+                    <label>720p Link</label>
+                    <input type="url" id="link720">
+                </div>
+                <div class="form-group">
+                    <label>1080p Link</label>
+                    <input type="url" id="link1080">
+                </div>
+                <button type="submit">Add Episode</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, set, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPwwCP2aLK7R22BNUq-rMtOVLs3Zn6xTs",
+            authDomain: "unknown-dubbers.firebaseapp.com",
+            databaseURL: "https://unknown-dubbers-default-rtdb.firebaseio.com",
+            projectId: "unknown-dubbers",
+            storageBucket: "unknown-dubbers.firebasestorage.app",
+            messagingSenderId: "293718979131",
+            appId: "1:293718979131:web:00e0e7efe5127e7b46621e",
+            measurementId: "G-QTQTY7XZ0H"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Users
+        const USERS = {
+            'unknown_dubbers': { password: 'Shubham786@', role: 'admin' },
+            'abnormal_config': { password: 'khalid786@', role: 'admin' },
+            'owner00': { password: 'khalid786#', role: 'owner' }
+        };
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (USERS[username] && USERS[username].password === password) {
+                sessionStorage.setItem('loggedIn', 'true');
+                showAdminPanel();
+            } else {
+                document.getElementById('error').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('error').style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        function showAdminPanel() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAnimeDropdown();
+        }
+
+        window.logout = function() {
+            sessionStorage.removeItem('loggedIn');
+            location.reload();
+        };
+
+        // Check if logged in
+        if (sessionStorage.getItem('loggedIn') === 'true') {
+            showAdminPanel();
+        }
+
+        // Add Anime
+        document.getElementById('animeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('animeName').value;
+            const poster = document.getElementById('animePoster').value;
+            const description = document.getElementById('animeDesc').value;
+
+            try {
+                const animeRef = ref(database, 'anime');
+                const newAnimeRef = push(animeRef);
+                
+                await set(newAnimeRef, {
+                    name,
+                    poster,
+                    description,
+                    createdAt: Date.now()
+                });
+
+                alert('Anime added successfully!');
+                document.getElementById('animeForm').reset();
+                loadAnimeDropdown();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Add Episode
+        document.getElementById('episodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const animeId = document.getElementById('selectAnime').value;
+            const episodeNumber = parseInt(document.getElementById('episodeNum').value);
+            const thumbnail = document.getElementById('episodeThumb').value;
+            const link480 = document.getElementById('link480').value;
+            const link720 = document.getElementById('link720').value;
+            const link1080 = document.getElementById('link1080').value;
+
+            if (!animeId) {
+                alert('Please select an anime');
+                return;
+            }
+
+            const links = {};
+            if (link480) links['480p'] = link480;
+            if (link720) links['720p'] = link720;
+            if (link1080) links['1080p'] = link1080;
+
+            if (Object.keys(links).length === 0) {
+                alert('Please provide at least one quality link');
+                return;
+            }
+
+            try {
+                const episodeRef = ref(database, `anime/${animeId}/episodes`);
+                const newEpisodeRef = push(episodeRef);
+                
+                await set(newEpisodeRef, {
+                    episodeNumber,
+                    thumbnail,
+                    links,
+                    createdAt: Date.now()
+                });
+
+                alert('Episode added successfully!');
+                document.getElementById('episodeForm').reset();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Load anime dropdown
+        async function loadAnimeDropdown() {
+            try {
+                const animeRef = ref(database, 'anime');
+                const snapshot = await get(animeRef);
+                const dropdown = document.getElementById('selectAnime');
+                
+                dropdown.innerHTML = '<option value="">-- Select --</option>';
+                
+                if (snapshot.exists()) {
+                    const animeData = snapshot.val();
+                    Object.entries(animeData).forEach(([id, anime]) => {
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = anime.name;
+                        dropdown.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

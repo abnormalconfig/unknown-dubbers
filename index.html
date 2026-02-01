@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unknown Dubbers - Premium Anime Streaming</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="site-branding">
+                <img src="https://image2url.com/r2/default/images/1769863844681-7b707f24-5692-47c3-b3f2-8a87684f4862.jpg" alt="Unknown Dubbers Logo" class="site-logo">
+                <div class="brand-text">
+                    <h1>UNKNOWN DUBBERS</h1>
+                    <p class="tagline">Your Premium Anime Destination</p>
+                </div>
+            </div>
+            <nav>
+                <a href="index.html" class="nav-btn"><span>🏠</span> Home</a>
+                <a href="admin.html" class="nav-btn"><span>⚙️</span> Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Hero Banner -->
+        <section class="hero-banner">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span>⭐</span>
+                    <span>Premium Anime Streaming</span>
+                </div>
+                <h2 class="hero-title">Watch Your Favorite Anime</h2>
+                <p class="hero-subtitle">Stream thousands of episodes in HD quality. New episodes added daily.</p>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <h3 class="section-title">🔍 Search Anime</h3>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search for your favorite anime..." />
+                <button id="searchBtn">Search →</button>
+            </div>
+        </section>
+
+        <!-- Search Results -->
+        <section id="searchResults" class="hidden">
+            <h2>🔍 Search Results</h2>
+            <div id="searchGrid" class="anime-grid"></div>
+        </section>
+
+        <!-- Popular Anime Section -->
+        <section class="popular-section">
+            <h2>🔥 Trending Now</h2>
+            <div id="popularGrid" class="anime-grid">
+                <p class="loading">Loading anime...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="https://image2url.com/r2/default/images/1769863844681-7b707f24-5692-47c3-b3f2-8a87684f4862.jpg" alt="Logo" class="footer-logo">
+                    <h3>UNKNOWN DUBBERS</h3>
+                    <p>Your premium anime streaming destination</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Quick Links</h4>
+                        <a href="index.html">Home</a>
+                        <a href="admin.html">Admin Panel</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Resources</h4>
+                        <a href="#">About Us</a>
+                        <a href="#">Contact</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Unknown Dubbers. All rights reserved.</p>
+                <p>Made with ❤️ for anime fans</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPwwCP2aLK7R22BNUq-rMtOVLs3Zn6xTs",
+            authDomain: "unknown-dubbers.firebaseapp.com",
+            databaseURL: "https://unknown-dubbers-default-rtdb.firebaseio.com",
+            projectId: "unknown-dubbers",
+            storageBucket: "unknown-dubbers.firebasestorage.app",
+            messagingSenderId: "293718979131",
+            appId: "1:293718979131:web:00e0e7efe5127e7b46621e",
+            measurementId: "G-QTQTY7XZ0H"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.addEventListener('DOMContentLoaded', loadPopularAnime);
+
+        async function loadPopularAnime() {
+            try {
+                const animeRef = ref(database, 'anime');
+                const snapshot = await get(animeRef);
+                
+                if (snapshot.exists()) {
+                    const animeData = snapshot.val();
+                    displayAnime(animeData, 'popularGrid');
+                } else {
+                    document.getElementById('popularGrid').innerHTML = '<p class="no-results">No anime available yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('popularGrid').innerHTML = '<p class="no-results">Error loading anime.</p>';
+            }
+        }
+
+        function displayAnime(animeData, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const animeArray = Object.entries(animeData).map(([id, data]) => ({id, ...data}));
+
+            if (animeArray.length === 0) {
+                container.innerHTML = '<p class="no-results">No anime found.</p>';
+                return;
+            }
+
+            animeArray.forEach(anime => {
+                const card = document.createElement('div');
+                card.className = 'anime-card';
+                card.innerHTML = `
+                    <img src="${anime.poster}" alt="${anime.name}">
+                    <h3>${anime.name}</h3>
+                `;
+                card.onclick = () => window.location.href = `anime.html?id=${anime.id}`;
+                container.appendChild(card);
+            });
+        }
+
+        // Search with fuzzy matching
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // Live search suggestions
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const searchTerm = e.target.value.trim().toLowerCase();
+            
+            if (searchTerm.length >= 2) {
+                searchTimeout = setTimeout(() => showSuggestions(searchTerm), 300);
+            } else {
+                hideSuggestions();
+            }
+        });
+
+        async function showSuggestions(searchTerm) {
+            try {
+                const animeRef = ref(database, 'anime');
+                const snapshot = await get(animeRef);
+                
+                if (snapshot.exists()) {
+                    const animeData = snapshot.val();
+                    const matches = Object.entries(animeData)
+                        .filter(([id, anime]) => fuzzyMatch(anime.name, searchTerm))
+                        .slice(0, 5)
+                        .map(([id, anime]) => ({ id, name: anime.name }));
+                    
+                    displaySuggestions(matches);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function fuzzyMatch(animeName, searchTerm) {
+            const name = animeName.toLowerCase();
+            const search = searchTerm.toLowerCase();
+            
+            // Exact match
+            if (name === search) return true;
+            
+            // Starts with
+            if (name.startsWith(search)) return true;
+            
+            // Contains
+            if (name.includes(search)) return true;
+            
+            // Word matching
+            const words = name.split(/\s+/);
+            if (words.some(word => word.startsWith(search))) return true;
+            
+            // Partial word matching
+            const searchWords = search.split(/\s+/);
+            if (searchWords.every(sw => words.some(w => w.includes(sw)))) return true;
+            
+            // Character matching (fuzzy)
+            let searchIndex = 0;
+            for (let i = 0; i < name.length && searchIndex < search.length; i++) {
+                if (name[i] === search[searchIndex]) {
+                    searchIndex++;
+                }
+            }
+            return searchIndex === search.length;
+        }
+
+        function displaySuggestions(matches) {
+            let suggestionsBox = document.getElementById('suggestions');
+            
+            if (!suggestionsBox) {
+                suggestionsBox = document.createElement('div');
+                suggestionsBox.id = 'suggestions';
+                suggestionsBox.className = 'search-suggestions';
+                document.querySelector('.search-box').appendChild(suggestionsBox);
+            }
+            
+            if (matches.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            
+            suggestionsBox.innerHTML = matches.map(match => `
+                <div class="suggestion-item" onclick="selectSuggestion('${match.id}', '${match.name.replace(/'/g, "\\'")}')">
+                    <span>🎬</span>
+                    <span>${match.name}</span>
+                </div>
+            `).join('');
+            
+            suggestionsBox.style.display = 'block';
+        }
+
+        function hideSuggestions() {
+            const suggestionsBox = document.getElementById('suggestions');
+            if (suggestionsBox) {
+                suggestionsBox.style.display = 'none';
+            }
+        }
+
+        window.selectSuggestion = function(animeId, animeName) {
+            document.getElementById('searchInput').value = animeName;
+            hideSuggestions();
+            window.location.href = `anime.html?id=${animeId}`;
+        };
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-box')) {
+                hideSuggestions();
+            }
+        });
+
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                alert('Please enter a search term');
+                return;
+            }
+
+            hideSuggestions();
+
+            try {
+                const animeRef = ref(database, 'anime');
+                const snapshot = await get(animeRef);
+                
+                if (snapshot.exists()) {
+                    const animeData = snapshot.val();
+                    const filtered = Object.entries(animeData)
+                        .filter(([id, anime]) => fuzzyMatch(anime.name, searchTerm))
+                        .sort((a, b) => {
+                            const aName = a[1].name.toLowerCase();
+                            const bName = b[1].name.toLowerCase();
+                            
+                            // Exact match first
+                            if (aName === searchTerm) return -1;
+                            if (bName === searchTerm) return 1;
+                            
+                            // Starts with
+                            if (aName.startsWith(searchTerm) && !bName.startsWith(searchTerm)) return -1;
+                            if (bName.startsWith(searchTerm) && !aName.startsWith(searchTerm)) return 1;
+                            
+                            // Alphabetical
+                            return aName.localeCompare(bName);
+                        })
+                        .reduce((obj, [id, data]) => {
+                            obj[id] = data;
+                            return obj;
+                        }, {});
+
+                    document.getElementById('searchResults').classList.remove('hidden');
+                    displayAnime(filtered, 'searchGrid');
+                } else {
+                    document.getElementById('searchGrid').innerHTML = '<p class="no-results">No results found.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

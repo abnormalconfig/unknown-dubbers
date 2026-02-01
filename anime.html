@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Details - Unknown Dubbers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="site-branding">
+                <img src="https://image2url.com/r2/default/images/1769863844681-7b707f24-5692-47c3-b3f2-8a87684f4862.jpg" alt="Unknown Dubbers Logo" class="site-logo">
+                <div class="brand-text">
+                    <h1>UNKNOWN DUBBERS</h1>
+                    <p class="tagline">Your Premium Anime Destination</p>
+                </div>
+            </div>
+            <nav>
+                <a href="index.html" class="nav-btn"><span>🏠</span> Home</a>
+                <a href="admin.html" class="nav-btn"><span>⚙️</span> Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="animeDetails">
+            <p class="loading">Loading...</p>
+        </div>
+
+        <section id="episodesSection" class="hidden">
+            <h2>📺 Episodes</h2>
+            <div id="episodesGrid" class="episodes-grid"></div>
+        </section>
+    </main>
+
+    <!-- Quality Modal -->
+    <div id="qualityModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Select Quality</h2>
+            <div id="qualityButtons"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPwwCP2aLK7R22BNUq-rMtOVLs3Zn6xTs",
+            authDomain: "unknown-dubbers.firebaseapp.com",
+            databaseURL: "https://unknown-dubbers-default-rtdb.firebaseio.com",
+            projectId: "unknown-dubbers",
+            storageBucket: "unknown-dubbers.firebasestorage.app",
+            messagingSenderId: "293718979131",
+            appId: "1:293718979131:web:00e0e7efe5127e7b46621e",
+            measurementId: "G-QTQTY7XZ0H"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const animeId = urlParams.get('id');
+
+        if (!animeId) window.location.href = 'index.html';
+
+        window.addEventListener('DOMContentLoaded', loadAnimeDetails);
+
+        async function loadAnimeDetails() {
+            try {
+                const animeRef = ref(database, `anime/${animeId}`);
+                const snapshot = await get(animeRef);
+                
+                if (snapshot.exists()) {
+                    const anime = snapshot.val();
+                    displayAnimeDetails(anime);
+                    displayEpisodes(anime.episodes || {});
+                } else {
+                    document.getElementById('animeDetails').innerHTML = '<p class="no-results">Anime not found.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayAnimeDetails(anime) {
+            const container = document.getElementById('animeDetails');
+            container.innerHTML = `
+                <div class="anime-detail-container">
+                    <div class="anime-poster-wrapper">
+                        <img src="${anime.poster}" alt="${anime.name}" class="anime-poster-large">
+                    </div>
+                    <div class="anime-info">
+                        <h1>${anime.name}</h1>
+                        <p>${anime.description || 'Watch all episodes of this amazing anime series!'}</p>
+                        <div class="anime-meta">
+                            <span class="badge">🔥 Popular</span>
+                            <span class="badge">📺 All Episodes</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayEpisodes(episodes) {
+            const section = document.getElementById('episodesSection');
+            const grid = document.getElementById('episodesGrid');
+            
+            const episodeArray = Object.entries(episodes).map(([id, data]) => ({id, ...data}))
+                .sort((a, b) => a.episodeNumber - b.episodeNumber);
+
+            if (episodeArray.length === 0) {
+                grid.innerHTML = '<p class="no-results">No episodes available.</p>';
+                section.classList.remove('hidden');
+                return;
+            }
+
+            grid.innerHTML = '';
+            episodeArray.forEach(episode => {
+                const card = document.createElement('div');
+                card.className = 'episode-card';
+                card.innerHTML = `
+                    <div class="episode-thumb">
+                        <img src="${episode.thumbnail}" alt="Episode ${episode.episodeNumber}">
+                        <div class="play-btn">▶</div>
+                    </div>
+                    <div class="episode-info">
+                        <h3>Episode ${episode.episodeNumber}</h3>
+                        <p>Click to watch</p>
+                    </div>
+                `;
+                card.onclick = () => showQualityModal(episode);
+                grid.appendChild(card);
+            });
+
+            section.classList.remove('hidden');
+        }
+
+        function showQualityModal(episode) {
+            const modal = document.getElementById('qualityModal');
+            const buttonsContainer = document.getElementById('qualityButtons');
+            
+            buttonsContainer.innerHTML = '';
+
+            ['480p', '720p', '1080p'].forEach(quality => {
+                if (episode.links && episode.links[quality]) {
+                    const btn = document.createElement('button');
+                    btn.className = 'quality-btn';
+                    btn.textContent = quality;
+                    btn.onclick = () => window.location.href = episode.links[quality];
+                    buttonsContainer.appendChild(btn);
+                }
+            });
+
+            if (buttonsContainer.children.length === 0) {
+                buttonsContainer.innerHTML = '<p class="no-quality">No quality options available.</p>';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        document.querySelector('.close').onclick = () => {
+            document.getElementById('qualityModal').classList.add('hidden');
+        };
+
+        window.onclick = (event) => {
+            if (event.target === document.getElementById('qualityModal')) {
+                document.getElementById('qualityModal').classList.add('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
