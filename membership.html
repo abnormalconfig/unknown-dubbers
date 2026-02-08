@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership - Unknown Dubbers</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        .hamburger-btn:hover { transform: scale(1.1); }
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translateY(9px);
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translateY(-9px);
+        }
+        .drawer-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            padding: 80px 20px 20px;
+        }
+        .drawer-menu.open { right: 0; }
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .drawer-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(-5px);
+        }
+        .drawer-icon { font-size: 24px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="site-branding">
+                <img src="https://image2url.com/r2/default/images/1769863844681-7b707f24-5692-47c3-b3f2-8a87684f4862.jpg" alt="Unknown Dubbers Logo" class="site-logo">
+                <div class="brand-text">
+                    <h1>UNKNOWN DUBBERS</h1>
+                    <p class="tagline">Your Premium Anime Destination</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <div class="drawer-overlay" onclick="toggleMenu()"></div>
+
+    <div class="drawer-menu">
+        <a href="index.html" class="drawer-item">
+            <span class="drawer-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="membership.html" class="drawer-item">
+            <span class="drawer-icon">👑</span>
+            <span>Membership</span>
+        </a>
+        <a href="admin.html" class="drawer-item">
+            <span class="drawer-icon">⚙️</span>
+            <span>Admin Panel</span>
+        </a>
+    </div>
+
+    <main class="container">
+        <!-- Step 1: Registration -->
+        <section class="membership-section" id="step1">
+            <div class="step-header">
+                <div class="step-number">Step 1</div>
+                <h2>Register Your Account</h2>
+                <p>Create your premium account to unlock exclusive content</p>
+            </div>
+            
+            <div class="registration-form">
+                <div class="form-group">
+                    <label>👤 Username</label>
+                    <input type="text" id="regUsername" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="regPassword" placeholder="Create a strong password" required>
+                </div>
+                <button class="primary-btn" onclick="completeRegistration()">Register & Continue →</button>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="color: #64748b; font-size: 14px;">Already have an account?</p>
+                    <button class="primary-btn" onclick="showLogin()" style="background: #10b981; margin-top: 10px;">Login</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Screen (Hidden initially) -->
+        <section class="membership-section hidden" id="loginSection">
+            <div class="step-header">
+                <div class="step-number">Login</div>
+                <h2>Welcome Back!</h2>
+                <p>Login to access your membership</p>
+            </div>
+            
+            <div class="registration-form">
+                <div class="form-group">
+                    <label>👤 Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+                <button class="primary-btn" onclick="loginMember()">Login →</button>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="color: #64748b; font-size: 14px;">Don't have an account?</p>
+                    <button class="primary-btn" onclick="showRegister()" style="background: #667eea; margin-top: 10px;">Register</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Confirmation -->
+        <section class="membership-section hidden" id="step2">
+            <div class="step-header">
+                <div class="step-number">Step 2</div>
+                <h2>Registration Successful!</h2>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-icon">✅</div>
+                <h3>Welcome, <span id="displayUsername"></span>!</h3>
+                <p class="user-info">Your account has been created successfully.</p>
+            </div>
+
+            <button class="primary-btn" onclick="showPlans()">Continue to Plans →</button>
+        </section>
+
+        <!-- Step 3: Plans -->
+        <section class="membership-section hidden" id="step3">
+            <div class="step-header">
+                <h2>👑 Choose Your Plan</h2>
+                <p>Select the perfect plan for unlimited anime streaming</p>
+            </div>
+
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <div class="plan-badge">STARTER</div>
+                    <div class="plan-header">
+                        <h3>10 Days</h3>
+                        <div class="plan-price">
+                            <span class="currency">₹</span>
+                            <span class="amount">20</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature">✅ HD Streaming</div>
+                        <div class="feature">✅ All Anime Access</div>
+                        <div class="feature">✅ No Ads</div>
+                    </div>
+                    <button class="plan-btn" onclick="getPlan('10days')">Get Plan</button>
+                </div>
+
+                <div class="plan-card popular">
+                    <div class="plan-badge popular-badge">POPULAR</div>
+                    <div class="plan-header">
+                        <h3>15 Days</h3>
+                        <div class="plan-price">
+                            <span class="currency">₹</span>
+                            <span class="amount">30</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature">✅ HD Streaming</div>
+                        <div class="feature">✅ All Anime Access</div>
+                        <div class="feature">✅ Priority Support</div>
+                        <div class="feature">✅ No Ads</div>
+                    </div>
+                    <button class="plan-btn popular-btn" onclick="getPlan('15days')">Get Plan</button>
+                </div>
+
+                <div class="plan-card premium">
+                    <div class="plan-badge premium-badge">BEST VALUE</div>
+                    <div class="plan-header">
+                        <h3>30 Days</h3>
+                        <div class="plan-price">
+                            <span class="currency">₹</span>
+                            <span class="amount">45</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature">✅ 4K Streaming</div>
+                        <div class="feature">✅ All Anime Access</div>
+                        <div class="feature">✅ VIP Support 24/7</div>
+                        <div class="feature">✅ Early Access</div>
+                        <div class="feature">✅ No Ads</div>
+                    </div>
+                    <button class="plan-btn premium-btn" onclick="getPlan('30days')">Get Plan</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Member Dashboard (Hidden initially) -->
+        <section class="membership-section hidden" id="memberDashboard">
+            <h2>👑 Welcome Back, <span id="memberName"></span>!</h2>
+            
+            <div class="info-box" style="margin-bottom: 30px;">
+                <h3>Your Membership Status</h3>
+                <p><strong>Plan:</strong> <span id="memberPlan"></span></p>
+                <p><strong>Expires:</strong> <span id="memberExpiry"></span></p>
+            </div>
+
+            <h2>🎬 Upcoming Anime (Exclusive Access)</h2>
+            <div id="upcomingGrid" class="anime-grid">
+                <p class="loading">Loading exclusive content...</p>
+            </div>
+
+            <button class="primary-btn" onclick="logout()" style="margin-top: 40px; background: #ef4444;">Logout</button>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="https://image2url.com/r2/default/images/1769863844681-7b707f24-5692-47c3-b3f2-8a87684f4862.jpg" alt="Logo" class="footer-logo">
+                    <h3>UNKNOWN DUBBERS</h3>
+                    <p>Your premium anime streaming destination</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Unknown Dubbers. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const hamburger = document.querySelector('.hamburger-btn');
+            const drawer = document.querySelector('.drawer-menu');
+            const overlay = document.querySelector('.drawer-overlay');
+            
+            hamburger.classList.toggle('active');
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, set, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPwwCP2aLK7R22BNUq-rMtOVLs3Zn6xTs",
+            authDomain: "unknown-dubbers.firebaseapp.com",
+            databaseURL: "https://unknown-dubbers-default-rtdb.firebaseio.com",
+            projectId: "unknown-dubbers",
+            storageBucket: "unknown-dubbers.firebasestorage.app",
+            messagingSenderId: "293718979131",
+            appId: "1:293718979131:web:00e0e7efe5127e7b46621e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.completeRegistration = async function() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            try {
+                const usersRef = ref(database, 'members');
+                const snapshot = await get(usersRef);
+                
+                if (snapshot.exists()) {
+                    const userExists = Object.values(snapshot.val()).some(u => u.username === username);
+                    if (userExists) {
+                        alert('Username already taken!');
+                        return;
+                    }
+                }
+
+                const newUserRef = push(usersRef);
+                await set(newUserRef, {
+                    username: username,
+                    password: password,
+                    plan: 'none',
+                    planExpiry: null,
+                    registeredAt: Date.now(),
+                    status: 'pending'
+                });
+
+                localStorage.setItem('memberId', newUserRef.key);
+                localStorage.setItem('memberUsername', username);
+                
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                document.getElementById('displayUsername').textContent = username;
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        window.showLogin = function() {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.showRegister = function() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.loginMember = async function() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const usersRef = ref(database, 'members');
+                const snapshot = await get(usersRef);
+                
+                if (snapshot.exists()) {
+                    const members = snapshot.val();
+                    const memberEntry = Object.entries(members).find(([id, m]) => 
+                        m.username === username && m.password === password
+                    );
+
+                    if (memberEntry) {
+                        const [memberId, memberData] = memberEntry;
+                        
+                        localStorage.setItem('memberId', memberId);
+                        localStorage.setItem('memberUsername', username);
+                        
+                        // Check if has active plan
+                        if (memberData.plan !== 'none' && memberData.planExpiry && memberData.planExpiry > Date.now()) {
+                            showMemberDashboard(memberData);
+                        } else {
+                            document.getElementById('loginSection').classList.add('hidden');
+                            document.getElementById('step3').classList.remove('hidden');
+                        }
+                    } else {
+                        alert('Invalid username or password!');
+                    }
+                } else {
+                    alert('No members found!');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        window.showPlans = function() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.getPlan = function(planType) {
+            window.open('https://t.me/VIP_UNKNOWN_DUBBERS', '_blank');
+            setTimeout(() => {
+                alert('🎉 Welcome to VIP!\n\nShare your username with admins to activate your ' + planType + ' plan.');
+            }, 500);
+        };
+
+        // Check if logged in
+        window.addEventListener('DOMContentLoaded', async () => {
+            const memberId = localStorage.getItem('memberId');
+            
+            if (memberId) {
+                try {
+                    const memberRef = ref(database, `members/${memberId}`);
+                    const snapshot = await get(memberRef);
+                    
+                    if (snapshot.exists()) {
+                        const member = snapshot.val();
+                        
+                        if (member.plan !== 'none' && member.planExpiry && member.planExpiry > Date.now()) {
+                            showMemberDashboard(member);
+                        } else {
+                            document.getElementById('step1').classList.add('hidden');
+                            document.getElementById('step3').classList.remove('hidden');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+
+        async function showMemberDashboard(member) {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('memberDashboard').classList.remove('hidden');
+            
+            document.getElementById('memberName').textContent = member.username;
+            document.getElementById('memberPlan').textContent = member.plan;
+            document.getElementById('memberExpiry').textContent = new Date(member.planExpiry).toLocaleDateString();
+            
+            loadUpcomingAnime();
+        }
+
+        async function loadUpcomingAnime() {
+            try {
+                const upcomingRef = ref(database, 'upcomingAnime');
+                const snapshot = await get(upcomingRef);
+                const container = document.getElementById('upcomingGrid');
+                
+                if (snapshot.exists()) {
+                    container.innerHTML = '';
+                    Object.entries(snapshot.val()).forEach(([id, anime]) => {
+                        const card = document.createElement('div');
+                        card.className = 'anime-card';
+                        card.innerHTML = `
+                            <img src="${anime.poster}" alt="${anime.name}">
+                            <h3>${anime.name}</h3>
+                            <p style="padding: 10px; font-size: 13px; color: #64748b;">Release: ${anime.releaseDate}</p>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<p class="no-results">No upcoming anime yet. Check back soon!</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        window.logout = function() {
+            localStorage.removeItem('memberId');
+            localStorage.removeItem('memberUsername');
+            location.reload();
+        };
+    </script>
+</body>
+</html>

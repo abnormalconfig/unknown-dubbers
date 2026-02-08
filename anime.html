@@ -5,6 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anime Details - Unknown Dubbers</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Hamburger Menu */
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        .hamburger-btn:hover {
+            transform: scale(1.1);
+        }
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translateY(9px);
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translateY(-9px);
+        }
+        
+        /* Drawer Menu */
+        .drawer-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            padding: 80px 20px 20px;
+        }
+        .drawer-menu.open {
+            right: 0;
+        }
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .drawer-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(-5px);
+        }
+        .drawer-icon {
+            font-size: 24px;
+        }
+        .episode-stats-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 10px;
+            gap: 8px;
+        }
+        .stat-item-inline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-item-inline:hover {
+            color: #667eea;
+            transform: scale(1.1);
+        }
+        .stat-icon {
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -16,12 +135,34 @@
                     <p class="tagline">Your Premium Anime Destination</p>
                 </div>
             </div>
-            <nav>
-                <a href="index.html" class="nav-btn"><span>🏠</span> Home</a>
-                <a href="admin.html" class="nav-btn"><span>⚙️</span> Admin</a>
-            </nav>
         </div>
     </header>
+
+    <!-- Hamburger Button -->
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <!-- Drawer Overlay -->
+    <div class="drawer-overlay" onclick="toggleMenu()"></div>
+
+    <!-- Drawer Menu -->
+    <div class="drawer-menu">
+        <a href="index.html" class="drawer-item">
+            <span class="drawer-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="membership.html" class="drawer-item">
+            <span class="drawer-icon">👑</span>
+            <span>Membership</span>
+        </a>
+        <a href="admin.html" class="drawer-item">
+            <span class="drawer-icon">⚙️</span>
+            <span>Admin Panel</span>
+        </a>
+    </div>
 
     <main class="container">
         <div id="animeDetails">
@@ -43,9 +184,21 @@
         </div>
     </div>
 
+    <script>
+        function toggleMenu() {
+            const hamburger = document.querySelector('.hamburger-btn');
+            const drawer = document.querySelector('.drawer-menu');
+            const overlay = document.querySelector('.drawer-overlay');
+            
+            hamburger.classList.toggle('active');
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getDatabase, ref, get, update, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyDPwwCP2aLK7R22BNUq-rMtOVLs3Zn6xTs",
@@ -54,8 +207,7 @@
             projectId: "unknown-dubbers",
             storageBucket: "unknown-dubbers.firebasestorage.app",
             messagingSenderId: "293718979131",
-            appId: "1:293718979131:web:00e0e7efe5127e7b46621e",
-            measurementId: "G-QTQTY7XZ0H"
+            appId: "1:293718979131:web:00e0e7efe5127e7b46621e"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -63,6 +215,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const animeId = urlParams.get('id');
+        let currentEpisode = null;
 
         if (!animeId) window.location.href = 'index.html';
 
@@ -119,31 +272,164 @@
 
             grid.innerHTML = '';
             episodeArray.forEach(episode => {
+                const now = Date.now();
+                const isScheduled = episode.scheduleTime && episode.scheduleTime > now;
+                const isLocked = episode.targetVotes && (!episode.votes || episode.votes < episode.targetVotes);
+                
                 const card = document.createElement('div');
                 card.className = 'episode-card';
-                card.innerHTML = `
-                    <div class="episode-thumb">
-                        <img src="${episode.thumbnail}" alt="Episode ${episode.episodeNumber}">
-                        <div class="play-btn">▶</div>
-                    </div>
-                    <div class="episode-info">
-                        <h3>Episode ${episode.episodeNumber}</h3>
-                        <p>Click to watch</p>
-                    </div>
-                `;
-                card.onclick = () => showQualityModal(episode);
+                
+                if (isScheduled) {
+                    const timeLeft = getTimeLeft(episode.scheduleTime);
+                    card.innerHTML = `
+                        <div class="episode-thumb scheduled">
+                            <img src="${episode.thumbnail}" alt="Episode ${episode.episodeNumber}">
+                            <div class="schedule-overlay">
+                                <div class="schedule-icon">⏰</div>
+                                <div class="schedule-time">${timeLeft}</div>
+                            </div>
+                        </div>
+                        <div class="episode-info">
+                            <h3>Episode ${episode.episodeNumber}</h3>
+                            <p>Scheduled Upload</p>
+                        </div>
+                    `;
+                } else if (isLocked) {
+                    const votesNeeded = episode.targetVotes - (episode.votes || 0);
+                    card.innerHTML = `
+                        <div class="episode-thumb locked">
+                            <img src="${episode.thumbnail}" alt="Episode ${episode.episodeNumber}">
+                            <div class="lock-overlay">
+                                <div class="lock-icon">🔒</div>
+                                <div class="votes-needed">${votesNeeded} votes needed</div>
+                            </div>
+                        </div>
+                        <div class="episode-info">
+                            <h3>Episode ${episode.episodeNumber}</h3>
+                            <button class="vote-btn" onclick="voteEpisode('${animeId}', '${episode.id}')">🗳️ Vote</button>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="episode-thumb">
+                            <img src="${episode.thumbnail}" alt="Episode ${episode.episodeNumber}">
+                            <div class="play-btn">▶</div>
+                        </div>
+                        <div class="episode-info">
+                            <h3>Episode ${episode.episodeNumber}</h3>
+                            <p>Click to watch</p>
+                        </div>
+                        <div class="episode-stats-bar">
+                            <div class="stat-item-inline">
+                                <span class="stat-icon">👁️</span>
+                                <span>${episode.views || 0}</span>
+                            </div>
+                            <div class="stat-item-inline" onclick="likeEpisode('${animeId}', '${episode.id}', event)">
+                                <span class="stat-icon">👍</span>
+                                <span id="like-${episode.id}">${episode.likes || 0}</span>
+                            </div>
+                            <div class="stat-item-inline" onclick="shareEpisode('${episode.episodeNumber}')">
+                                <span class="stat-icon">📤</span>
+                                <span>Share</span>
+                            </div>
+                        </div>
+                    `;
+                    card.querySelector('.episode-thumb').onclick = () => showQualityModal(episode);
+                }
+                
                 grid.appendChild(card);
             });
 
             section.classList.remove('hidden');
         }
 
-        function showQualityModal(episode) {
+        function getTimeLeft(timestamp) {
+            const diff = timestamp - Date.now();
+            if (diff <= 0) return 'Available now';
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (hours > 24) {
+                const days = Math.floor(hours / 24);
+                return `${days}d ${hours % 24}h`;
+            }
+            return `${hours}h ${minutes}m`;
+        }
+
+        window.voteEpisode = async function(animeId, episodeId) {
+            const voteKey = `voted_${animeId}_${episodeId}`;
+            if (localStorage.getItem(voteKey)) {
+                alert('You have already voted!');
+                return;
+            }
+
+            try {
+                await update(ref(database, `anime/${animeId}/episodes/${episodeId}`), {
+                    votes: increment(1)
+                });
+                localStorage.setItem(voteKey, 'true');
+                alert('Vote registered!');
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        window.likeEpisode = async function(animeId, episodeId, event) {
+            event.stopPropagation();
+            const likeKey = `liked_${animeId}_${episodeId}`;
+            
+            if (localStorage.getItem(likeKey)) {
+                alert('You already liked this!');
+                return;
+            }
+
+            try {
+                await update(ref(database, `anime/${animeId}/episodes/${episodeId}`), {
+                    likes: increment(1)
+                });
+                localStorage.setItem(likeKey, 'true');
+                
+                const snapshot = await get(ref(database, `anime/${animeId}/episodes/${episodeId}`));
+                if (snapshot.exists()) {
+                    document.getElementById('like-' + episodeId).textContent = snapshot.val().likes || 0;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        };
+
+        window.shareEpisode = function(episodeNumber) {
+            const url = window.location.href;
+            const text = `Watch Episode ${episodeNumber} on Unknown Dubbers!`;
+            
+            if (navigator.share) {
+                navigator.share({ title: 'Unknown Dubbers', text: text, url: url });
+            } else {
+                navigator.clipboard.writeText(url);
+                alert('Link copied!');
+            }
+        };
+
+        async function showQualityModal(episode) {
+            // Increment view
+            const viewKey = `viewed_${animeId}_${episode.id}`;
+            if (!localStorage.getItem(viewKey)) {
+                try {
+                    await update(ref(database, `anime/${animeId}/episodes/${episode.id}`), {
+                        views: increment(1)
+                    });
+                    localStorage.setItem(viewKey, 'true');
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+
             const modal = document.getElementById('qualityModal');
             const buttonsContainer = document.getElementById('qualityButtons');
             
             buttonsContainer.innerHTML = '';
-
             ['480p', '720p', '1080p'].forEach(quality => {
                 if (episode.links && episode.links[quality]) {
                     const btn = document.createElement('button');

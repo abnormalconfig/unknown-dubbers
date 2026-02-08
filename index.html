@@ -5,6 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unknown Dubbers - Premium Anime Streaming</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        .hamburger-btn:hover { transform: scale(1.1); }
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translateY(9px);
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger-btn.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translateY(-9px);
+        }
+        .drawer-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            padding: 80px 20px 20px;
+        }
+        .drawer-menu.open { right: 0; }
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .drawer-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(-5px);
+        }
+        .drawer-icon { font-size: 24px; }
+    </style>
 </head>
 <body>
     <header>
@@ -16,15 +99,33 @@
                     <p class="tagline">Your Premium Anime Destination</p>
                 </div>
             </div>
-            <nav>
-                <a href="index.html" class="nav-btn"><span>🏠</span> Home</a>
-                <a href="admin.html" class="nav-btn"><span>⚙️</span> Admin</a>
-            </nav>
         </div>
     </header>
 
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <div class="drawer-overlay" onclick="toggleMenu()"></div>
+
+    <div class="drawer-menu">
+        <a href="index.html" class="drawer-item">
+            <span class="drawer-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="membership.html" class="drawer-item">
+            <span class="drawer-icon">👑</span>
+            <span>Membership</span>
+        </a>
+        <a href="admin.html" class="drawer-item">
+            <span class="drawer-icon">⚙️</span>
+            <span>Admin Panel</span>
+        </a>
+    </div>
+
     <main class="container">
-        <!-- Hero Banner -->
         <section class="hero-banner">
             <div class="hero-content">
                 <div class="hero-badge">
@@ -36,7 +137,6 @@
             </div>
         </section>
 
-        <!-- Search Section -->
         <section class="search-section">
             <h3 class="section-title">🔍 Search Anime</h3>
             <div class="search-box">
@@ -45,13 +145,11 @@
             </div>
         </section>
 
-        <!-- Search Results -->
         <section id="searchResults" class="hidden">
             <h2>🔍 Search Results</h2>
             <div id="searchGrid" class="anime-grid"></div>
         </section>
 
-        <!-- Popular Anime Section -->
         <section class="popular-section">
             <h2>🔥 Trending Now</h2>
             <div id="popularGrid" class="anime-grid">
@@ -60,7 +158,6 @@
         </section>
     </main>
 
-    <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
             <div class="footer-content">
@@ -69,18 +166,6 @@
                     <h3>UNKNOWN DUBBERS</h3>
                     <p>Your premium anime streaming destination</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h4>Quick Links</h4>
-                        <a href="index.html">Home</a>
-                        <a href="admin.html">Admin Panel</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Resources</h4>
-                        <a href="#">About Us</a>
-                        <a href="#">Contact</a>
-                    </div>
-                </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Unknown Dubbers. All rights reserved.</p>
@@ -88,6 +173,18 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        function toggleMenu() {
+            const hamburger = document.querySelector('.hamburger-btn');
+            const drawer = document.querySelector('.drawer-menu');
+            const overlay = document.querySelector('.drawer-overlay');
+            
+            hamburger.classList.toggle('active');
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    </script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -100,8 +197,7 @@
             projectId: "unknown-dubbers",
             storageBucket: "unknown-dubbers.firebasestorage.app",
             messagingSenderId: "293718979131",
-            appId: "1:293718979131:web:00e0e7efe5127e7b46621e",
-            measurementId: "G-QTQTY7XZ0H"
+            appId: "1:293718979131:web:00e0e7efe5127e7b46621e"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -111,31 +207,21 @@
 
         async function loadPopularAnime() {
             try {
-                const animeRef = ref(database, 'anime');
-                const snapshot = await get(animeRef);
-                
+                const snapshot = await get(ref(database, 'anime'));
                 if (snapshot.exists()) {
-                    const animeData = snapshot.val();
-                    displayAnime(animeData, 'popularGrid');
+                    displayAnime(snapshot.val(), 'popularGrid');
                 } else {
-                    document.getElementById('popularGrid').innerHTML = '<p class="no-results">No anime available yet.</p>';
+                    document.getElementById('popularGrid').innerHTML = '<p class="no-results">No anime available.</p>';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('popularGrid').innerHTML = '<p class="no-results">Error loading anime.</p>';
             }
         }
 
         function displayAnime(animeData, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
-
             const animeArray = Object.entries(animeData).map(([id, data]) => ({id, ...data}));
-
-            if (animeArray.length === 0) {
-                container.innerHTML = '<p class="no-results">No anime found.</p>';
-                return;
-            }
 
             animeArray.forEach(anime => {
                 const card = document.createElement('div');
@@ -149,161 +235,24 @@
             });
         }
 
-        // Search with fuzzy matching
         document.getElementById('searchBtn').addEventListener('click', performSearch);
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') performSearch();
         });
 
-        // Live search suggestions
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            const searchTerm = e.target.value.trim().toLowerCase();
-            
-            if (searchTerm.length >= 2) {
-                searchTimeout = setTimeout(() => showSuggestions(searchTerm), 300);
-            } else {
-                hideSuggestions();
-            }
-        });
-
-        async function showSuggestions(searchTerm) {
-            try {
-                const animeRef = ref(database, 'anime');
-                const snapshot = await get(animeRef);
-                
-                if (snapshot.exists()) {
-                    const animeData = snapshot.val();
-                    const matches = Object.entries(animeData)
-                        .filter(([id, anime]) => fuzzyMatch(anime.name, searchTerm))
-                        .slice(0, 5)
-                        .map(([id, anime]) => ({ id, name: anime.name }));
-                    
-                    displaySuggestions(matches);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function fuzzyMatch(animeName, searchTerm) {
-            const name = animeName.toLowerCase();
-            const search = searchTerm.toLowerCase();
-            
-            // Exact match
-            if (name === search) return true;
-            
-            // Starts with
-            if (name.startsWith(search)) return true;
-            
-            // Contains
-            if (name.includes(search)) return true;
-            
-            // Word matching
-            const words = name.split(/\s+/);
-            if (words.some(word => word.startsWith(search))) return true;
-            
-            // Partial word matching
-            const searchWords = search.split(/\s+/);
-            if (searchWords.every(sw => words.some(w => w.includes(sw)))) return true;
-            
-            // Character matching (fuzzy)
-            let searchIndex = 0;
-            for (let i = 0; i < name.length && searchIndex < search.length; i++) {
-                if (name[i] === search[searchIndex]) {
-                    searchIndex++;
-                }
-            }
-            return searchIndex === search.length;
-        }
-
-        function displaySuggestions(matches) {
-            let suggestionsBox = document.getElementById('suggestions');
-            
-            if (!suggestionsBox) {
-                suggestionsBox = document.createElement('div');
-                suggestionsBox.id = 'suggestions';
-                suggestionsBox.className = 'search-suggestions';
-                document.querySelector('.search-box').appendChild(suggestionsBox);
-            }
-            
-            if (matches.length === 0) {
-                hideSuggestions();
-                return;
-            }
-            
-            suggestionsBox.innerHTML = matches.map(match => `
-                <div class="suggestion-item" onclick="selectSuggestion('${match.id}', '${match.name.replace(/'/g, "\\'")}')">
-                    <span>🎬</span>
-                    <span>${match.name}</span>
-                </div>
-            `).join('');
-            
-            suggestionsBox.style.display = 'block';
-        }
-
-        function hideSuggestions() {
-            const suggestionsBox = document.getElementById('suggestions');
-            if (suggestionsBox) {
-                suggestionsBox.style.display = 'none';
-            }
-        }
-
-        window.selectSuggestion = function(animeId, animeName) {
-            document.getElementById('searchInput').value = animeName;
-            hideSuggestions();
-            window.location.href = `anime.html?id=${animeId}`;
-        };
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-box')) {
-                hideSuggestions();
-            }
-        });
-
         async function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            
-            if (!searchTerm) {
-                alert('Please enter a search term');
-                return;
-            }
-
-            hideSuggestions();
+            if (!searchTerm) return alert('Please enter a search term');
 
             try {
-                const animeRef = ref(database, 'anime');
-                const snapshot = await get(animeRef);
-                
+                const snapshot = await get(ref(database, 'anime'));
                 if (snapshot.exists()) {
-                    const animeData = snapshot.val();
-                    const filtered = Object.entries(animeData)
-                        .filter(([id, anime]) => fuzzyMatch(anime.name, searchTerm))
-                        .sort((a, b) => {
-                            const aName = a[1].name.toLowerCase();
-                            const bName = b[1].name.toLowerCase();
-                            
-                            // Exact match first
-                            if (aName === searchTerm) return -1;
-                            if (bName === searchTerm) return 1;
-                            
-                            // Starts with
-                            if (aName.startsWith(searchTerm) && !bName.startsWith(searchTerm)) return -1;
-                            if (bName.startsWith(searchTerm) && !aName.startsWith(searchTerm)) return 1;
-                            
-                            // Alphabetical
-                            return aName.localeCompare(bName);
-                        })
-                        .reduce((obj, [id, data]) => {
-                            obj[id] = data;
-                            return obj;
-                        }, {});
+                    const filtered = Object.entries(snapshot.val())
+                        .filter(([id, anime]) => anime.name.toLowerCase().includes(searchTerm))
+                        .reduce((obj, [id, data]) => { obj[id] = data; return obj; }, {});
 
                     document.getElementById('searchResults').classList.remove('hidden');
                     displayAnime(filtered, 'searchGrid');
-                } else {
-                    document.getElementById('searchGrid').innerHTML = '<p class="no-results">No results found.</p>';
                 }
             } catch (error) {
                 console.error('Error:', error);
