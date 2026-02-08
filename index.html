@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unknown Dubbers - Premium Anime Streaming</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Monetag Service Worker Registration -->
+    <script>
+        (function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(registration) {
+                        console.log('Monetag SW registered');
+                    })
+                    .catch(function(error) {
+                        console.log('SW registration failed:', error);
+                    });
+            }
+        })();
+    </script>
+    
     <style>
         .hamburger-btn {
             position: fixed;
