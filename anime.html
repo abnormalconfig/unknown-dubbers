@@ -243,6 +243,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const animeId = urlParams.get('id');
+        const animeType = urlParams.get('type'); // 'member' or null
         let currentEpisode = null;
 
         if (!animeId) window.location.href = 'index.html';
@@ -251,7 +252,8 @@
 
         async function loadAnimeDetails() {
             try {
-                const animeRef = ref(database, `anime/${animeId}`);
+                const dbPath = animeType === 'member' ? `memberAnime/${animeId}` : `anime/${animeId}`;
+                const animeRef = ref(database, dbPath);
                 const snapshot = await get(animeRef);
                 
                 if (snapshot.exists()) {

@@ -235,9 +235,28 @@
 
         async function loadPopularAnime() {
             try {
+                // Load regular anime
                 const snapshot = await get(ref(database, 'anime'));
+                
+                // Load member anime
+                const memberSnapshot = await get(ref(database, 'memberAnime'));
+                
+                let allAnime = {};
+                
                 if (snapshot.exists()) {
-                    displayAnime(snapshot.val(), 'popularGrid');
+                    Object.entries(snapshot.val()).forEach(([id, anime]) => {
+                        allAnime[id] = { ...anime, type: 'regular' };
+                    });
+                }
+                
+                if (memberSnapshot.exists()) {
+                    Object.entries(memberSnapshot.val()).forEach(([id, anime]) => {
+                        allAnime[id] = { ...anime, type: 'member' };
+                    });
+                }
+                
+                if (Object.keys(allAnime).length > 0) {
+                    displayAnime(allAnime, 'popularGrid');
                 } else {
                     document.getElementById('popularGrid').innerHTML = '<p class="no-results">No anime available.</p>';
                 }
@@ -254,11 +273,17 @@
             animeArray.forEach(anime => {
                 const card = document.createElement('div');
                 card.className = 'anime-card';
+                
+                const memberBadge = anime.type === 'member' ? '<div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">👑 MEMBER</div>' : '';
+                
                 card.innerHTML = `
+                    ${memberBadge}
                     <img src="${anime.poster}" alt="${anime.name}">
                     <h3>${anime.name}</h3>
                 `;
-                card.onclick = () => window.location.href = `anime.html?id=${anime.id}`;
+                
+                const linkType = anime.type === 'member' ? '&type=member' : '';
+                card.onclick = () => window.location.href = `anime.html?id=${anime.id}${linkType}`;
                 container.appendChild(card);
             });
         }

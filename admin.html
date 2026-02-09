@@ -95,7 +95,7 @@
             <div class="tabs">
                 <button class="tab active" onclick="showTab('addAnime')">Add Anime</button>
                 <button class="tab" onclick="showTab('addEpisode')">Add Episode</button>
-                <button class="tab" onclick="showTab('addUpcoming')">Upcoming Anime</button>
+                <button class="tab" onclick="showTab('memberContent')">Member Content</button>
                 <button class="tab" onclick="showTab('members')">Members</button>
                 <button class="tab" onclick="showTab('manage')">Manage</button>
             </div>
@@ -176,32 +176,75 @@
                 </div>
             </div>
 
-            <!-- Add Upcoming Anime Tab -->
-            <div class="tab-content" id="addUpcoming">
-                <h2>Add Upcoming Anime (Members Only)</h2>
+            <!-- Member Content Tab -->
+            <div class="tab-content" id="memberContent">
+                <h2>Upload Member-Only Content</h2>
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 10px;">📌 Note:</h4>
+                    <p style="color: #64748b; font-size: 14px;">
+                        Content uploaded here will be <strong>member-only</strong>. 
+                        Only users with active membership plans can watch.
+                    </p>
+                </div>
+
+                <!-- Upload Member Anime -->
                 <div class="form-section">
-                    <form id="upcomingForm">
+                    <h3>Upload Member Anime</h3>
+                    <form id="memberAnimeForm">
                         <div class="form-group">
                             <label>Anime Name</label>
-                            <input type="text" id="upcomingName" required>
+                            <input type="text" id="memberAnimeName" required>
                         </div>
                         <div class="form-group">
                             <label>Poster URL</label>
-                            <input type="url" id="upcomingPoster" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Release Date</label>
-                            <input type="date" id="upcomingDate" required>
+                            <input type="url" id="memberAnimePoster" required>
                         </div>
                         <div class="form-group">
                             <label>Description</label>
-                            <textarea id="upcomingDesc" rows="3"></textarea>
+                            <textarea id="memberAnimeDesc" rows="3"></textarea>
                         </div>
-                        <button type="submit">Add to Upcoming</button>
+                        <button type="submit">Upload Member Anime</button>
                     </form>
                 </div>
-                <h3 style="margin-top: 30px;">Upcoming Anime List</h3>
-                <div id="upcomingList" class="item-list"></div>
+
+                <!-- Upload Member Episode -->
+                <div class="form-section" style="margin-top: 30px;">
+                    <h3>Upload Member Episode</h3>
+                    <form id="memberEpisodeForm">
+                        <div class="form-group">
+                            <label>Select Member Anime</label>
+                            <select id="selectMemberAnime" required>
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Episode Number</label>
+                            <input type="number" id="memberEpisodeNum" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Thumbnail URL</label>
+                            <input type="url" id="memberEpisodeThumb" required>
+                        </div>
+                        <div class="form-group">
+                            <label>480p Link</label>
+                            <input type="url" id="memberLink480">
+                        </div>
+                        <div class="form-group">
+                            <label>720p Link</label>
+                            <input type="url" id="memberLink720">
+                        </div>
+                        <div class="form-group">
+                            <label>1080p Link</label>
+                            <input type="url" id="memberLink1080">
+                        </div>
+                        <button type="submit">Upload Member Episode</button>
+                    </form>
+                </div>
+
+                <!-- Member Content List -->
+                <h3 style="margin-top: 30px;">Member Content List</h3>
+                <div id="memberContentList" class="item-list"></div>
             </div>
 
             <!-- Members Tab -->
@@ -273,7 +316,10 @@
             document.getElementById(tab).classList.add('active');
             if (tab === 'manage') loadManageList();
             if (tab === 'members') loadMembers();
-            if (tab === 'addUpcoming') loadUpcomingList();
+            if (tab === 'memberContent') {
+                loadMemberAnimeDropdown();
+                loadMemberContentList();
+            }
         };
 
         // Add Anime
@@ -289,6 +335,54 @@
                 alert('Anime added!');
                 document.getElementById('animeForm').reset();
                 loadAnimeDropdown();
+            } catch (e) { alert('Error: ' + e.message); }
+        });
+
+        // Upload Member Anime
+        document.getElementById('memberAnimeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await set(push(ref(database, 'memberAnime')), {
+                    name: document.getElementById('memberAnimeName').value,
+                    poster: document.getElementById('memberAnimePoster').value,
+                    description: document.getElementById('memberAnimeDesc').value,
+                    memberOnly: true,
+                    uploadedBy: 'admin',
+                    createdAt: Date.now()
+                });
+                alert('Member anime uploaded!');
+                document.getElementById('memberAnimeForm').reset();
+                loadMemberAnimeDropdown();
+                loadMemberContentList();
+            } catch (e) { alert('Error: ' + e.message); }
+        });
+
+        // Upload Member Episode
+        document.getElementById('memberEpisodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const animeId = document.getElementById('selectMemberAnime').value;
+            if (!animeId) return alert('Select anime');
+
+            const links = {};
+            ['480', '720', '1080'].forEach(q => {
+                const val = document.getElementById('memberLink' + q).value;
+                if (val) links[q + 'p'] = val;
+            });
+            if (!Object.keys(links).length) return alert('Add at least one link');
+
+            try {
+                await set(push(ref(database, `memberAnime/${animeId}/episodes`)), {
+                    episodeNumber: parseInt(document.getElementById('memberEpisodeNum').value),
+                    thumbnail: document.getElementById('memberEpisodeThumb').value,
+                    links,
+                    views: 0,
+                    likes: 0,
+                    memberOnly: true,
+                    createdAt: Date.now()
+                });
+                alert('Member episode uploaded!');
+                document.getElementById('memberEpisodeForm').reset();
+                loadMemberContentList();
             } catch (e) { alert('Error: ' + e.message); }
         });
 
@@ -406,30 +500,43 @@
             loadMembers();
         };
 
-        async function loadUpcomingList() {
-            const s = await get(ref(database, 'upcomingAnime'));
-            const c = document.getElementById('upcomingList');
+        async function loadMemberAnimeDropdown() {
+            const s = await get(ref(database, 'memberAnime'));
+            const d = document.getElementById('selectMemberAnime');
+            d.innerHTML = '<option value="">-- Select --</option>';
+            if (s.exists()) Object.entries(s.val()).forEach(([id, a]) => {
+                d.innerHTML += `<option value="${id}">${a.name}</option>`;
+            });
+        }
+
+        async function loadMemberContentList() {
+            const s = await get(ref(database, 'memberAnime'));
+            const c = document.getElementById('memberContentList');
             c.innerHTML = '';
             if (s.exists()) {
-                Object.entries(s.val()).forEach(([id, a]) => {
+                Object.entries(s.val()).forEach(([id, anime]) => {
+                    const epCount = Object.keys(anime.episodes || {}).length;
                     c.innerHTML += `
                         <div class="list-item">
                             <div>
-                                <h4>${a.name}</h4>
-                                <small>Release: ${a.releaseDate}</small>
+                                <h4>${anime.name}</h4>
+                                <small>👑 Member Only | ${epCount} episodes</small>
                             </div>
-                            <button class="delete-btn" onclick="deleteUpcoming('${id}')">Delete</button>
+                            <button class="delete-btn" onclick="deleteMemberAnime('${id}')">Delete</button>
                         </div>
                     `;
                 });
+            } else {
+                c.innerHTML = '<p style="text-align:center;color:#64748b;padding:20px;">No member content yet</p>';
             }
         }
 
-        window.deleteUpcoming = async (id) => {
-            if (!confirm('Delete?')) return;
-            await remove(ref(database, `upcomingAnime/${id}`));
+        window.deleteMemberAnime = async (id) => {
+            if (!confirm('Delete this member anime and all episodes?')) return;
+            await remove(ref(database, `memberAnime/${id}`));
             alert('Deleted!');
-            loadUpcomingList();
+            loadMemberContentList();
+            loadMemberAnimeDropdown();
         };
 
         async function loadManageList() {

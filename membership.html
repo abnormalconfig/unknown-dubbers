@@ -103,6 +103,38 @@
             transform: translateX(-5px);
         }
         .drawer-icon { font-size: 24px; }
+        .member-upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -296,9 +328,79 @@
                 <p><strong>Expires:</strong> <span id="memberExpiry"></span></p>
             </div>
 
-            <h2>🎬 Upcoming Anime (Exclusive Access)</h2>
-            <div id="upcomingGrid" class="anime-grid">
-                <p class="loading">Loading exclusive content...</p>
+            <!-- Member Content Upload -->
+            <div class="member-upload-section">
+                <div class="tabs">
+                    <button class="tab active" onclick="showMemberTab('uploadAnime')">Upload Anime</button>
+                    <button class="tab" onclick="showMemberTab('uploadEpisode')">Upload Episode</button>
+                    <button class="tab" onclick="showMemberTab('myContent')">My Content</button>
+                </div>
+
+                <!-- Upload Anime Tab -->
+                <div class="tab-content active" id="uploadAnime">
+                    <h3>Upload New Anime</h3>
+                    <div class="form-section">
+                        <form id="memberAnimeForm">
+                            <div class="form-group">
+                                <label>Anime Name</label>
+                                <input type="text" id="mAnimeName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Poster URL</label>
+                                <input type="url" id="mAnimePoster" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="mAnimeDesc" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="primary-btn">Upload Anime</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upload Episode Tab -->
+                <div class="tab-content" id="uploadEpisode">
+                    <h3>Upload Episode</h3>
+                    <div class="form-section">
+                        <form id="memberEpisodeForm">
+                            <div class="form-group">
+                                <label>Select Your Anime</label>
+                                <select id="mSelectAnime" required style="width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                                    <option value="">-- Select Anime --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Episode Number</label>
+                                <input type="number" id="mEpisodeNum" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Thumbnail URL</label>
+                                <input type="url" id="mEpisodeThumb" required>
+                            </div>
+                            <div class="form-group">
+                                <label>480p Link</label>
+                                <input type="url" id="mLink480">
+                            </div>
+                            <div class="form-group">
+                                <label>720p Link</label>
+                                <input type="url" id="mLink720">
+                            </div>
+                            <div class="form-group">
+                                <label>1080p Link</label>
+                                <input type="url" id="mLink1080">
+                            </div>
+                            <button type="submit" class="primary-btn">Upload Episode</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- My Content Tab -->
+                <div class="tab-content" id="myContent">
+                    <h3>My Uploaded Content</h3>
+                    <div id="myAnimeList" class="anime-grid">
+                        <p class="loading">Loading your content...</p>
+                    </div>
+                </div>
             </div>
 
             <button class="primary-btn" onclick="logout()" style="margin-top: 40px; background: #ef4444;">Logout</button>
@@ -502,32 +604,149 @@
             document.getElementById('memberPlan').textContent = member.plan;
             document.getElementById('memberExpiry').textContent = new Date(member.planExpiry).toLocaleDateString();
             
-            loadUpcomingAnime();
+            loadMemberAnime();
         }
 
-        async function loadUpcomingAnime() {
+        window.showMemberTab = function(tabName) {
+            document.querySelectorAll('#memberDashboard .tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#memberDashboard .tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'uploadEpisode') loadMemberAnimeDropdown();
+            if (tabName === 'myContent') loadMemberAnime();
+        };
+
+        // Upload Anime
+        document.getElementById('memberAnimeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const memberId = localStorage.getItem('memberId');
+            
             try {
-                const upcomingRef = ref(database, 'upcomingAnime');
-                const snapshot = await get(upcomingRef);
-                const container = document.getElementById('upcomingGrid');
+                const animeRef = ref(database, 'memberAnime');
+                const newAnimeRef = push(animeRef);
+                
+                await set(newAnimeRef, {
+                    name: document.getElementById('mAnimeName').value,
+                    poster: document.getElementById('mAnimePoster').value,
+                    description: document.getElementById('mAnimeDesc').value,
+                    uploadedBy: memberId,
+                    createdAt: Date.now(),
+                    memberOnly: true
+                });
+                
+                alert('Anime uploaded successfully!');
+                document.getElementById('memberAnimeForm').reset();
+                loadMemberAnimeDropdown();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Upload Episode
+        document.getElementById('memberEpisodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const animeId = document.getElementById('mSelectAnime').value;
+            
+            if (!animeId) {
+                alert('Please select an anime');
+                return;
+            }
+
+            const links = {};
+            ['480', '720', '1080'].forEach(q => {
+                const val = document.getElementById('mLink' + q).value;
+                if (val) links[q + 'p'] = val;
+            });
+
+            if (Object.keys(links).length === 0) {
+                alert('Please add at least one quality link');
+                return;
+            }
+
+            try {
+                const episodeRef = ref(database, `memberAnime/${animeId}/episodes`);
+                const newEpisodeRef = push(episodeRef);
+                
+                await set(newEpisodeRef, {
+                    episodeNumber: parseInt(document.getElementById('mEpisodeNum').value),
+                    thumbnail: document.getElementById('mEpisodeThumb').value,
+                    links: links,
+                    views: 0,
+                    likes: 0,
+                    createdAt: Date.now(),
+                    memberOnly: true
+                });
+                
+                alert('Episode uploaded successfully!');
+                document.getElementById('memberEpisodeForm').reset();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        async function loadMemberAnimeDropdown() {
+            const memberId = localStorage.getItem('memberId');
+            const dropdown = document.getElementById('mSelectAnime');
+            dropdown.innerHTML = '<option value="">-- Select Anime --</option>';
+            
+            try {
+                const animeRef = ref(database, 'memberAnime');
+                const snapshot = await get(animeRef);
                 
                 if (snapshot.exists()) {
-                    container.innerHTML = '';
                     Object.entries(snapshot.val()).forEach(([id, anime]) => {
+                        if (anime.uploadedBy === memberId) {
+                            const option = document.createElement('option');
+                            option.value = id;
+                            option.textContent = anime.name;
+                            dropdown.appendChild(option);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function loadMemberAnime() {
+            const memberId = localStorage.getItem('memberId');
+            const container = document.getElementById('myAnimeList');
+            container.innerHTML = '<p class="loading">Loading...</p>';
+            
+            try {
+                const animeRef = ref(database, 'memberAnime');
+                const snapshot = await get(animeRef);
+                
+                if (snapshot.exists()) {
+                    const myAnime = Object.entries(snapshot.val())
+                        .filter(([id, anime]) => anime.uploadedBy === memberId);
+                    
+                    if (myAnime.length === 0) {
+                        container.innerHTML = '<p class="no-results">You haven\'t uploaded any anime yet.</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    myAnime.forEach(([id, anime]) => {
                         const card = document.createElement('div');
                         card.className = 'anime-card';
                         card.innerHTML = `
                             <img src="${anime.poster}" alt="${anime.name}">
                             <h3>${anime.name}</h3>
-                            <p style="padding: 10px; font-size: 13px; color: #64748b;">Release: ${anime.releaseDate}</p>
+                            <p style="padding: 10px; font-size: 13px;">
+                                ${Object.keys(anime.episodes || {}).length} episodes
+                            </p>
                         `;
+                        card.onclick = () => window.location.href = `anime.html?id=${id}&type=member`;
                         container.appendChild(card);
                     });
                 } else {
-                    container.innerHTML = '<p class="no-results">No upcoming anime yet. Check back soon!</p>';
+                    container.innerHTML = '<p class="no-results">No content yet.</p>';
                 }
             } catch (error) {
                 console.error('Error:', error);
+                container.innerHTML = '<p class="no-results">Error loading content.</p>';
             }
         }
 
