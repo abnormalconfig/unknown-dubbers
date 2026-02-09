@@ -419,7 +419,7 @@ nav {
 }
 
 /* Scheduled & Locked Episodes */
-.schedule-overlay, .lock-overlay {
+.schedule-overlay, .lock-overlay, .member-overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.8);
@@ -432,17 +432,21 @@ nav {
     padding: 10px;
 }
 
-.schedule-icon, .lock-icon {
+.member-overlay {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+}
+
+.schedule-icon, .lock-icon, .member-icon {
     font-size: 32px;
     margin-bottom: 8px;
 }
 
-.schedule-time, .votes-needed {
+.schedule-time, .votes-needed, .member-text {
     font-size: 13px;
     font-weight: 600;
 }
 
-.vote-btn {
+.vote-btn, .member-btn {
     margin-top: 8px;
     padding: 6px 12px;
     background: var(--primary);
@@ -452,6 +456,10 @@ nav {
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
+}
+
+.member-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
 /* Modal */

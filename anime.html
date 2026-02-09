@@ -303,6 +303,7 @@
                 const now = Date.now();
                 const isScheduled = episode.scheduleTime && episode.scheduleTime > now;
                 const isLocked = episode.targetVotes && (!episode.votes || episode.votes < episode.targetVotes);
+                const isMemberOnly = episode.memberOnly === true;
                 
                 const card = document.createElement('div');
                 card.className = 'episode-card';
@@ -335,6 +336,20 @@
                         <div class="episode-info">
                             <h3>Episode ${episode.episodeNumber}</h3>
                             <button class="vote-btn" onclick="voteEpisode('${animeId}', '${episode.id}')">🗳️ Vote</button>
+                        </div>
+                    `;
+                } else if (isMemberOnly) {
+                    card.innerHTML = `
+                        <div class="episode-thumb member-only">
+                            <img src="${episode.thumbnail}" alt="Episode ${episode.episodeNumber}">
+                            <div class="member-overlay">
+                                <div class="member-icon">👑</div>
+                                <div class="member-text">Members Only</div>
+                            </div>
+                        </div>
+                        <div class="episode-info">
+                            <h3>Episode ${episode.episodeNumber}</h3>
+                            <button class="member-btn" onclick="checkMemberAccess('${animeId}', '${episode.id}')">👑 Watch</button>
                         </div>
                     `;
                 } else {
@@ -437,6 +452,50 @@
             } else {
                 navigator.clipboard.writeText(url);
                 alert('Link copied!');
+            }
+        };
+
+        window.checkMemberAccess = async function(animeId, episodeId) {
+            const memberId = localStorage.getItem('memberId');
+            
+            if (!memberId) {
+                alert('Please register for membership to watch this episode!\n\nClick OK to go to Membership page.');
+                window.location.href = 'membership.html';
+                return;
+            }
+
+            try {
+                const memberRef = ref(database, `members/${memberId}`);
+                const snapshot = await get(memberRef);
+                
+                if (!snapshot.exists()) {
+                    alert('Member account not found! Please register again.');
+                    localStorage.removeItem('memberId');
+                    window.location.href = 'membership.html';
+                    return;
+                }
+
+                const member = snapshot.val();
+                
+                // Check if plan is active
+                if (member.plan === 'none' || !member.planExpiry || member.planExpiry < Date.now()) {
+                    alert('Your membership has expired!\n\nPlease renew your plan to watch member-only episodes.');
+                    window.location.href = 'membership.html';
+                    return;
+                }
+
+                // Member has active plan - load episode
+                const episodeRef = ref(database, `anime/${animeId}/episodes/${episodeId}`);
+                const episodeSnapshot = await get(episodeRef);
+                
+                if (episodeSnapshot.exists()) {
+                    showQualityModal(episodeSnapshot.val());
+                } else {
+                    alert('Episode not found!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error checking membership status');
             }
         };
 

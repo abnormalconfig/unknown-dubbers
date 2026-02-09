@@ -161,6 +161,16 @@
                             <label>🗳️ Target Votes (Optional)</label>
                             <input type="number" id="targetVotes" min="0" placeholder="e.g., 100">
                         </div>
+                        <div class="form-group">
+                            <label>👑 Member Only Episode</label>
+                            <select id="memberOnly">
+                                <option value="false">No - Public (Everyone can watch)</option>
+                                <option value="true">Yes - Members Only (Requires active plan)</option>
+                            </select>
+                            <small style="color: #64748b; display: block; margin-top: 5px;">
+                                If "Yes", only users with active membership can watch
+                            </small>
+                        </div>
                         <button type="submit">Add Episode</button>
                     </form>
                 </div>
@@ -298,7 +308,12 @@
             const data = {
                 episodeNumber: parseInt(document.getElementById('episodeNum').value),
                 thumbnail: document.getElementById('episodeThumb').value,
-                links, views: 0, likes: 0, votes: 0, createdAt: Date.now()
+                links, 
+                views: 0, 
+                likes: 0, 
+                votes: 0, 
+                createdAt: Date.now(),
+                memberOnly: document.getElementById('memberOnly').value === 'true'
             };
 
             const st = document.getElementById('scheduleTime').value;
@@ -309,7 +324,7 @@
 
             try {
                 await set(push(ref(database, `anime/${animeId}/episodes`)), data);
-                alert('Episode added!');
+                alert('Episode added!' + (data.memberOnly ? ' (Members Only)' : ''));
                 document.getElementById('episodeForm').reset();
             } catch (e) { alert('Error: ' + e.message); }
         });
